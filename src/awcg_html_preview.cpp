@@ -366,8 +366,23 @@ std::string HtmlPreviewGenerator::generateElementStyle(const DOMNode& node, Slot
          // Since we don't know parent direction here easily without passing it...
          // Actually, VerticalBox children align horizontally, HorizontalBox children align vertically.
          
-         // Simplification: Just use padding and size rules
+         // Output margin for slot-level spacing
          css << "margin: " << slot.paddingTop << "px " << slot.paddingRight << "px " << slot.paddingBottom << "px " << slot.paddingLeft << "px; ";
+         
+         // Output padding if specified in CSS (internal element padding)
+         if (node.computedStyles.count("padding")) {
+             css << "padding: " << node.computedStyles.at("padding") << "; ";
+         } else {
+             // Check individual padding properties
+             if (node.computedStyles.count("padding-top") || node.computedStyles.count("padding-right") ||
+                 node.computedStyles.count("padding-bottom") || node.computedStyles.count("padding-left")) {
+                 std::string pTop = node.computedStyles.count("padding-top") ? node.computedStyles.at("padding-top") : "0";
+                 std::string pRight = node.computedStyles.count("padding-right") ? node.computedStyles.at("padding-right") : "0";
+                 std::string pBottom = node.computedStyles.count("padding-bottom") ? node.computedStyles.at("padding-bottom") : "0";
+                 std::string pLeft = node.computedStyles.count("padding-left") ? node.computedStyles.at("padding-left") : "0";
+                 css << "padding: " << pTop << " " << pRight << " " << pBottom << " " << pLeft << "; ";
+             }
+         }
          
          if (slot.sizeRule == "Fill") {
              css << "flex-grow: " << slot.fillWeight << "; ";

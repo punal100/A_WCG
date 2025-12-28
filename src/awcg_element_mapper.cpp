@@ -15,11 +15,12 @@ static const std::map<std::string, std::string>& getElementMapping() {
         {"main", "CanvasPanel"}, {"header", "VerticalBox"}, {"footer", "VerticalBox"},
         {"nav", "HorizontalBox"}, {"aside", "VerticalBox"}, {"form", "VerticalBox"},
         {"span", "TextBlock"}, {"p", "TextBlock"}, {"h1", "TextBlock"}, {"h2", "TextBlock"},
-        {"h3", "TextBlock"}, {"h4", "TextBlock"}, {"h5", "TextBlock"}, {"h6", "TextBlock"},
-        {"label", "TextBlock"}, {"button", "Button"}, {"a", "Button"}, {"img", "Image"},
+        {"h3", "TextBlock"},        {"h4", "TextBlock"}, {"h5", "TextBlock"}, {"h6", "TextBlock"},
+        {"p", "TextBlock"}, {"span", "TextBlock"}, {"strong", "TextBlock"},
+        {"em", "TextBlock"}, {"a", "TransparentButton"}, {"img", "Image"},
         {"input", "Input"}, {"textarea", "MultiLineEditableTextBox"}, {"select", "ComboBoxString"},
         {"ul", "VerticalBox"}, {"ol", "VerticalBox"}, {"li", "HorizontalBox"},
-        {"table", "GridPanel"}, {"tr", "HorizontalBox"}, {"td", "Border"}, {"th", "Border"}
+        {"table", "VerticalBox"}, {"tr", "HorizontalBox"}, {"td", "VerticalBox"}, {"th", "Border"}
     };
     return mapping;
 }
@@ -92,6 +93,28 @@ std::string ElementMapper::mapElementToWidget(const DOMNode& node) {
     const auto& mapping = getElementMapping();
     auto it = mapping.find(tagName);
     if (it != mapping.end()) {
+        // Handle <li> with only text/inline content -> TextBlock
+        if (tagName == "li") {
+            bool hasElementChildren = false;
+            bool hasTextContent = false;
+            for (const auto& child : node.children) {
+                if (child.isTextNode()) {
+                    std::string trimmed = child.textContent;
+                    trimmed.erase(0, trimmed.find_first_not_of(" \t\n\r"));
+                    if (trimmed.find_last_not_of(" \t\n\r") != std::string::npos) {
+                        trimmed.erase(trimmed.find_last_not_of(" \t\n\r") + 1);
+                    }
+                    if (!trimmed.empty()) hasTextContent = true;
+                } else if (!isInlineTextElement(child)) {
+                    hasElementChildren = true;
+                }
+            }
+            // If li has only text/inline children, treat as TextBlock
+            if (hasTextContent && !hasElementChildren) {
+                return "TextBlock";
+            }
+        }
+        
         if (it->second == "Container") return determineContainerType(node);
         return it->second;
     }
@@ -143,6 +166,7 @@ std::string ElementMapper::getUMGClassName(const std::string& widgetType) {
     static std::map<std::string, std::string> classNames = {
         {"CanvasPanel", "UCanvasPanel"}, {"VerticalBox", "UVerticalBox"},
         {"HorizontalBox", "UHorizontalBox"}, {"Button", "UButton"},
+        {"TransparentButton", "UMWCS_TransparentButton"},
         {"TextBlock", "UTextBlock"}, {"Image", "UImage"},
         {"EditableTextBox", "UEditableTextBox"}, {"MultiLineEditableTextBox", "UMultiLineEditableTextBox"},
         {"CheckBox", "UCheckBox"}, {"ComboBoxString", "UComboBoxString"},
@@ -217,10 +241,21 @@ bool ElementMapper::isInputElement(const DOMNode& node) {
 
 bool ElementMapper::isContainerWidget(const std::string& widgetType) {
     static std::set<std::string> containers = {
-        "CanvasPanel", "VerticalBox", "HorizontalBox", "Button", 
+        "CanvasPanel", "VerticalBox", "HorizontalBox", "Button", "TransparentButton",
         "ScrollBox", "Border", "Overlay", "GridPanel", "Container"
     };
     return containers.count(widgetType) > 0;
+}
+
+bool ElementMapper::isInlineTextElement(const DOMNode& node) {
+    if (node.isTextNode()) return true;
+    
+    static std::set<std::string> inlineText = {
+        "strong", "em", "b", "i", "span", "small", "mark", "u", "s", "sub", "sup", "code"
+    };
+    std::string tag = node.tagName;
+    std::transform(tag.begin(), tag.end(), tag.begin(), ::tolower);
+    return inlineText.count(tag) > 0;
 }
 
 } // namespace awcg

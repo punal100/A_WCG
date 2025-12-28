@@ -61,6 +61,12 @@ public:
     static bool isInputElement(const DOMNode& node);
 
     /**
+     * Check if element is an inline text element (strong, em, b, i, span, etc.)
+     * These elements should have their text content concatenated with parent text.
+     */
+    static bool isInlineTextElement(const DOMNode& node);
+
+    /**
      * Check if widget type can have children in UMG
      */
     static bool isContainerWidget(const std::string& widgetType);

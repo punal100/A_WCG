@@ -217,7 +217,8 @@ bool HTMLParser::tokenize(const std::string& content, std::vector<Token>& outTok
                         }
                         else if (normTag == "script") scriptBlocks_.push_back(rawContent);
 
-                        outTokens.push_back({TokenType::Text, rawContent, line, column});
+                        // Do NOT add raw content as Text token to avoid it appearing in the DOM tree as a text node
+                        // outTokens.push_back({TokenType::Text, rawContent, line, column});
                     }
                     break;
                 }

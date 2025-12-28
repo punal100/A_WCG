@@ -54,6 +54,7 @@ std::string CppGenerator::generateHeader(const ParsedWebSource& source,
     header << "#include \"Components/VerticalBox.h\"\n";
     header << "#include \"Components/HorizontalBox.h\"\n";
     header << "#include \"Components/Button.h\"\n";
+    header << "#include \"MWCS_TransparentButton.h\"\n";
     header << "#include \"Components/TextBlock.h\"\n";
     header << "#include \"Components/Image.h\"\n";
     header << "#include \"Components/EditableTextBox.h\"\n";

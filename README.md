@@ -134,10 +134,12 @@ A_WCG explicitly does **NOT**:
 - **Automated C++ Binding** — Generates headers with `UFUNCTION` and `UPROPERTY`
 - **JSON Layout Schema** — Converts DOM structures into P_MWCS JSON
 - **MWCS Inline Properties** — TextBlock widgets include `FontSize` and `Justification` inline in Hierarchy (required by MWCS)
-- **Default HTML Font Sizes** — h1=32px, h2=24px, h3=19px, p=16px (browser defaults)
-- **Slot Generation** — CSS positioning converts to UMG Slot configs (anchors, offsets, alignment)
-- **Design Properties** — Background colors (`Brush.TintColor`), text colors (`ColorAndOpacity`), fonts, opacity
-- **Transparent Buttons** — HTML links (`<a>`) render as transparent UE buttons with styled text
+- **List Styling**- Lists (`<ul>`, `<ol>`) automatically receive left padding (40px) to visually distinguish them.
+- **Button Child Wrapping**: Since UMG Buttons only support a single child, A_WCG automatically wraps multiple children (e.g. `<li><a href>Icon + Text</a></li>`) into a `HorizontalBox` container.
+
+#### Validation & Parity
+- **Type Compatibility**: `TransparentButton` is now strictly validated as a `UButton` subclass, preventing type mismatch errors in P_MWCS.
+- **Hierarchy Validation**: Generated widgets are structure-checked against UMG constraints (e.g. ScrollBox child count, Button child count) during generation.
 - **HTML Preview** — Browser-accurate preview with proper font sizes, headings, and text extraction
 - **CSS Filtering** — Automatically filters ad-blocker CSS pollution
 - **Recursive Text** — Extracts text from nested elements (spans inside headings)

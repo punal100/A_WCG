@@ -303,6 +303,23 @@ The preview HTML now includes:
 
 ---
 
+### 14. New Features (v1.1)
+
+#### Transparent Buttons
+- Any `<a>` tag in HTML is automatically converted to a `TransparentButton` widget.
+- These buttons use a transparent style (`DrawAs: None`) but retain their text and hover states.
+- This is ideal for navigational links or overlay interactions.
+
+#### Ad-Blocker Filtering
+- A_WCG automatically detects and strips CSS styles related to ad-blockers (e.g., classes containing `abn` or `adblock`).
+- This prevents wide-ranging `display: none` rules from hiding legitimate content.
+
+#### Text Handling
+- All `TextBlock` widgets have `AutoWrapText: true` enabled by default.
+- Lists (`<ul>`, `<ol>`) automatically receive left padding (40px) to visually distinguish them.
+
+---
+
 ## See Also
 
 - [README.md](./README.md) — Project overview and build instructions
