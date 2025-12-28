@@ -59,6 +59,11 @@ public:
      * Check if input element
      */
     static bool isInputElement(const DOMNode& node);
+
+    /**
+     * Check if widget type can have children in UMG
+     */
+    static bool isContainerWidget(const std::string& widgetType);
 };
 
 } // namespace awcg

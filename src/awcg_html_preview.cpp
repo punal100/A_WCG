@@ -101,7 +101,7 @@ std::string HtmlPreviewGenerator::generateHead(const std::string& className) {
     head << indent(2) << ".ue-hbox { display: flex; flex-direction: row; flex-wrap: wrap; }\n";
     head << indent(2) << ".ue-text { display: block; }\n";
     head << indent(2) << ".ue-image { display: inline-block; width: 100px; height: 100px; border: 1px dashed #555; background: #333; }\n";
-    head << indent(2) << ".ue-button { display: inline; color: #88f; text-decoration: underline; cursor: pointer; }\n";
+    head << indent(2) << ".ue-button { display: inline; text-decoration: underline; cursor: pointer; }\n";
     head << indent(2) << ".ue-scrollbox { overflow: auto; }\n";
     
     // Browser-default styles for HTML elements
@@ -113,16 +113,16 @@ std::string HtmlPreviewGenerator::generateHead(const std::string& className) {
     head << indent(2) << ".tag-h5 { font-size: 0.83em; font-weight: bold; margin: 1.67em 0; }\n";
     head << indent(2) << ".tag-h6 { font-size: 0.67em; font-weight: bold; margin: 2.33em 0; }\n";
     head << indent(2) << ".tag-p { margin: 1em 0; }\n";
-    head << indent(2) << ".tag-a { color: #88f; text-decoration: underline; }\n";
     head << indent(2) << ".tag-span { display: inline; }\n";
     head << indent(2) << ".tag-div { display: block; }\n";
     head << indent(2) << ".tag-li { display: list-item; margin-left: 20px; }\n";
     head << indent(2) << ".tag-ol { margin: 1em 0; padding-left: 40px; list-style-type: decimal; }\n";
     head << indent(2) << ".tag-ul { margin: 1em 0; padding-left: 40px; list-style-type: disc; }\n";
+    head << indent(2) << "/* Nested lists - reduce top margin for proper nesting */\n";
+    head << indent(2) << ".tag-ol .tag-ol, .tag-ul .tag-ul, .tag-ol .tag-ul, .tag-ul .tag-ol { margin: 0.5em 0; }\n";
     head << indent(2) << ".tag-nav { display: block; }\n";
-    head << indent(2) << ".ue-button { display: inline; color: #3b82f6; text-decoration: underline; cursor: pointer; }\n";
-    head << indent(2) << "/* Links preserve clickability */\n";
-    head << indent(2) << "a.ue-text, a.ue-button { color: #3b82f6; text-decoration: underline; }\n";
+    head << indent(2) << "/* Links - consistent blue color with high specificity */\n";
+    head << indent(2) << "a, .tag-a, a.ue-text, a.ue-button, .ue-button { color: #3b82f6 !important; text-decoration: underline; }\n";
     
     head << indent(1) << "</style>\n";
     head << "</head>\n";

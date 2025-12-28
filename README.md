@@ -133,8 +133,11 @@ A_WCG explicitly does **NOT**:
 - **Zero UE Dependencies** — Runs anywhere, outputs standard files
 - **Automated C++ Binding** — Generates headers with `UFUNCTION` and `UPROPERTY`
 - **JSON Layout Schema** — Converts DOM structures into P_MWCS JSON
-- **Slot Generation** — CSS positioning (`absolute`, `flex`, `100%`) converts to UMG Slot configs (anchors, offsets, alignment)
+- **MWCS Inline Properties** — TextBlock widgets include `FontSize` and `Justification` inline in Hierarchy (required by MWCS)
+- **Default HTML Font Sizes** — h1=32px, h2=24px, h3=19px, p=16px (browser defaults)
+- **Slot Generation** — CSS positioning converts to UMG Slot configs (anchors, offsets, alignment)
 - **Design Properties** — Background colors (`Brush.TintColor`), text colors (`ColorAndOpacity`), fonts, opacity
+- **Transparent Buttons** — HTML links (`<a>`) render as transparent UE buttons with styled text
 - **HTML Preview** — Browser-accurate preview with proper font sizes, headings, and text extraction
 - **CSS Filtering** — Automatically filters ad-blocker CSS pollution
 - **Recursive Text** — Extracts text from nested elements (spans inside headings)

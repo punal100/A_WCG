@@ -114,15 +114,17 @@ Output: `out\build\x64-release\bin\Release\awcg.exe`
 |----------|---------|-------|
 | `color` | ColorAndOpacity | Text color (hex, rgb, rgba, named) |
 | `background-color` | Brush.TintColor | Background (ignores transparent) |
-| `font-size` | Font.Size | Pixels |
+| `font-size` | FontSize (inline) | **MWCS requires inline in Hierarchy** |
 | `font-weight` | Font.Typeface | 400→Regular, 700→Bold |
 | `font-family` | Font.FontObject | Default: Roboto |
-| `text-align` | Justification | left/center/right |
+| `text-align` | Justification (inline) | **MWCS requires inline in Hierarchy** |
 | `opacity` | RenderOpacity | 0.0 - 1.0 |
 | `display: none` | Visibility: Collapsed | Element hidden |
 | `visibility: hidden` | Visibility: Hidden | Element invisible but takes space |
 | `padding` | Widget Padding | |
 | `margin` | Slot Padding | |
+
+> **MWCS Format Note**: For TextBlock widgets, `FontSize` and `Justification` are output inline in the Hierarchy JSON (not in Design section). MWCS reads these from the `FMWCS_HierarchyNode` struct.
 
 ### Unsupported
 

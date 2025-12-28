@@ -215,4 +215,12 @@ bool ElementMapper::isInputElement(const DOMNode& node) {
     return inputs.count(tag) > 0;
 }
 
+bool ElementMapper::isContainerWidget(const std::string& widgetType) {
+    static std::set<std::string> containers = {
+        "CanvasPanel", "VerticalBox", "HorizontalBox", "Button", 
+        "ScrollBox", "Border", "Overlay", "GridPanel", "Container"
+    };
+    return containers.count(widgetType) > 0;
+}
+
 } // namespace awcg
