@@ -204,6 +204,10 @@ JSONGenerator::ChunkedSpec JSONGenerator::generateChunked(const ParsedWebSource&
         
         // State for List Counting
         std::vector<int> listCounters; // Stack of counters for nested OLs. -1 implies UL.
+        
+        // State for Button/Link Text Color
+        bool isInsideButton = false; // Track if we're inside a Button
+        bool isInsideLink = false;   // Track if we're inside a TransparentButton (link) for blue text
 
         void build(const DOMNode& node, int indentLevel, SlotConfig::SlotType parentSlotType) {
             std::string type = ElementMapper::mapElementToWidget(node);
@@ -220,13 +224,27 @@ JSONGenerator::ChunkedSpec JSONGenerator::generateChunked(const ParsedWebSource&
                 if (lowerTag == "ol") listCounters.push_back(1);
                 else listCounters.push_back(-1); // -1 for Unordered
             }
+            
+            // Track if we're entering a button/link (for blue link text)
+            bool wasInsideButton = isInsideButton;
+            bool wasInsideLink = isInsideLink;
+            if (type == "TransparentButton") {
+                isInsideLink = true; // Link elements get blue text
+            }
+            if (type == "Button") {
+                isInsideButton = true;
+            }
 
             // Determine container type for children
             SlotConfig::SlotType myContainerType = SlotConfig::SlotType::None;
             if (ElementMapper::isContainerWidget(type)) {
-                // If it's a list item (HorizontalBox), use auto/fill logic for children
+                // Force Box slot for list-related elements to ensure proper vertical stacking
                 if (lowerTag == "li") {
+                    // LI uses HorizontalBox internally for marker + content
                     myContainerType = SlotConfig::SlotType::Box; 
+                } else if (lowerTag == "ol" || lowerTag == "ul") {
+                    // Lists are VerticalBox - children must use Box slots for vertical stacking
+                    myContainerType = SlotConfig::SlotType::Box;
                 } else {
                     myContainerType = StyleMapper::determineContainerType(node.computedStyles);
                 }
@@ -264,14 +282,78 @@ JSONGenerator::ChunkedSpec JSONGenerator::generateChunked(const ParsedWebSource&
                     if (effectiveStyles.find("padding-left") == effectiveStyles.end()) {
                         effectiveStyles["padding-left"] = "40px";
                     }
+                    // Add vertical margin for list containers (browser default: 1em top/bottom)
+                    if (effectiveStyles.find("margin-top") == effectiveStyles.end() &&
+                        effectiveStyles.find("margin") == effectiveStyles.end()) {
+                        effectiveStyles["margin-top"] = "16px";
+                        effectiveStyles["margin-bottom"] = "16px";
+                    }
+                }
+                
+                // Inject default margins for block elements (browser defaults)
+                if (lowerTag == "p") {
+                    if (effectiveStyles.find("margin") == effectiveStyles.end() &&
+                        effectiveStyles.find("margin-top") == effectiveStyles.end()) {
+                        effectiveStyles["margin-top"] = "16px"; // 1em at 16px base
+                        effectiveStyles["margin-bottom"] = "16px";
+                    }
+                }
+                
+                // Headings with scale-based margins (browser defaults)
+                if (lowerTag == "h1") {
+                    if (effectiveStyles.find("margin") == effectiveStyles.end()) {
+                        effectiveStyles["margin-top"] = "21px"; // 0.67em at 32px
+                        effectiveStyles["margin-bottom"] = "21px";
+                    }
+                } else if (lowerTag == "h2") {
+                    if (effectiveStyles.find("margin") == effectiveStyles.end()) {
+                        effectiveStyles["margin-top"] = "20px"; // 0.83em at 24px
+                        effectiveStyles["margin-bottom"] = "20px";
+                    }
+                } else if (lowerTag == "h3") {
+                    if (effectiveStyles.find("margin") == effectiveStyles.end()) {
+                        effectiveStyles["margin-top"] = "19px"; // 1em at 19px
+                        effectiveStyles["margin-bottom"] = "19px";
+                    }
+                } else if (lowerTag == "h4") {
+                    if (effectiveStyles.find("margin") == effectiveStyles.end()) {
+                        effectiveStyles["margin-top"] = "21px"; // 1.33em at 16px
+                        effectiveStyles["margin-bottom"] = "21px";
+                    }
+                } else if (lowerTag == "h5") {
+                    if (effectiveStyles.find("margin") == effectiveStyles.end()) {
+                        effectiveStyles["margin-top"] = "22px"; // 1.67em at 13px
+                        effectiveStyles["margin-bottom"] = "22px";
+                    }
+                } else if (lowerTag == "h6") {
+                    if (effectiveStyles.find("margin") == effectiveStyles.end()) {
+                        effectiveStyles["margin-top"] = "25px"; // 2.33em at 11px
+                        effectiveStyles["margin-bottom"] = "25px";
+                    }
+                }
+                
+                // List items: small bottom margin for separation
+                if (lowerTag == "li") {
+                    if (effectiveStyles.find("margin") == effectiveStyles.end() &&
+                        effectiveStyles.find("margin-bottom") == effectiveStyles.end()) {
+                        effectiveStyles["margin-bottom"] = "4px"; // Small gap between list items
+                    }
                 }
 
                 SlotConfig slotCfg = StyleMapper::generateSlotConfig(effectiveStyles, parentSlotType);
                 
-                // If this is a Marker inside an LI, override to Auto
-                // If this is the Content inside an LI, override to Fill? 
-                // We'll handle LI children specifically below when iterating them.
-                
+                // FIX: Images should not stretch by default
+                if (type == "Image") {
+                    if (slotCfg.type == SlotConfig::SlotType::Box) {
+                        slotCfg.box.sizeRule = "Auto";
+                        slotCfg.box.hAlign = "Left";
+                         // Reset fill weight just in case
+                        slotCfg.box.fillWeight = 0.0f;
+                    } else if (slotCfg.type == SlotConfig::SlotType::Canvas) {
+                        slotCfg.canvas.autoSize = true;
+                    }
+                }
+
                 std::string slotJson = StyleMapper::slotToJson(slotCfg, 0);
                 if (!slotJson.empty()) {
                     hier << ",\n";
@@ -367,7 +449,8 @@ JSONGenerator::ChunkedSpec JSONGenerator::generateChunked(const ParsedWebSource&
                      markerText = "\u2022"; // Bullet
                  } else {
                      markerText = std::to_string(currentCounter) + ".";
-                     listCounters.back()++; // Increment for next item
+                     // NOTE: Counter increment moved to line 435 where marker is actually injected
+                     // to avoid double-incrementing (was causing 2, 4, 6 instead of 1, 2, 3)
                  }
                  
                  // We need to inject a child into this HorizontalBox BEFORE the actual content.
@@ -432,28 +515,58 @@ JSONGenerator::ChunkedSpec JSONGenerator::generateChunked(const ParsedWebSource&
                     if (isListItem) {
                         int currentCounter = listCounters.back();
                         std::string markerText = (currentCounter == -1) ? "\u2022" : (std::to_string(currentCounter) + ".");
+                        std::string markerName = name + "_Marker";
                         if (currentCounter != -1) listCounters.back()++; // Increment
                         
                         hier << indent(childIndent) << "{\n";
                         hier << indent(childIndent + 1) << "\"Type\": \"TextBlock\",\n";
-                        hier << indent(childIndent + 1) << "\"Name\": \"" << escapeJson(name) << "_Marker\",\n";
+                        hier << indent(childIndent + 1) << "\"Name\": \"" << escapeJson(markerName) << "\",\n";
                         hier << indent(childIndent + 1) << "\"Slot\": {\"Size\": {\"Rule\": \"Auto\"}, \"Padding\": {\"Right\": 10}},\n";
                         hier << indent(childIndent + 1) << "\"Text\": \"" << escapeJson(markerText) << "\",\n";
                         hier << indent(childIndent + 1) << "\"FontSize\": 16,\n";
                         hier << indent(childIndent + 1) << "\"AutoWrapText\": false\n";
+                        // ColorAndOpacity moved to Design section
                         hier << indent(childIndent) << "}";
+                        
+                        // Add Design entry for marker (black color)
+                        design << ",\n" << indent(2) << "\"" << escapeJson(markerName) << "\": {\n";
+                        design << indent(3) << "\"ColorAndOpacity\": {\"R\": 0, \"G\": 0, \"B\": 0, \"A\": 1}\n";
+                        design << indent(2) << "}";
                         
                         firstChild = false;
                     }
                     
-                    // 2. Iterate actual children
+                    // 2. Wrap children in VerticalBox for proper vertical stacking (if LI has multiple children)
+                    bool wrapChildrenInVBox = isListItem && validChildren.size() > 1;
+                    int contentIndent = childIndent;
+                    
+                    if (wrapChildrenInVBox) {
+                        if (!firstChild) hier << ",\n";
+                        firstChild = false;
+                        
+                        hier << indent(childIndent) << "{\n";
+                        hier << indent(childIndent + 1) << "\"Type\": \"VerticalBox\",\n";
+                        hier << indent(childIndent + 1) << "\"Name\": \"" << escapeJson(name) << "_Content\",\n";
+                        hier << indent(childIndent + 1) << "\"Slot\": {\"Size\": {\"Rule\": \"Fill\", \"Value\": 1}},\n";
+                        hier << indent(childIndent + 1) << "\"Children\": [\n";
+                        contentIndent = childIndent + 2;
+                        firstChild = true; // Reset for inner loop
+                    }
+                    
+                    // Iterate actual children
                     for (const auto* child : validChildren) {
                         if (!firstChild) hier << ",\n";
                         firstChild = false;
                         
                         // Pass wrapping container type if we wrapped
                         SlotConfig::SlotType effectiveContainer = needsWrapping ? SlotConfig::SlotType::Box : myContainerType;
-                        build(*child, childIndent, effectiveContainer);
+                        if (wrapChildrenInVBox) effectiveContainer = SlotConfig::SlotType::Box; // Children of VBox use Box slot
+                        build(*child, contentIndent, effectiveContainer);
+                    }
+                    
+                    if (wrapChildrenInVBox) {
+                        hier << "\n" << indent(childIndent + 1) << "]\n"; // VerticalBox Children
+                        hier << indent(childIndent) << "}"; // VerticalBox
                     }
                     
                     if (needsWrapping) {
@@ -483,8 +596,14 @@ JSONGenerator::ChunkedSpec JSONGenerator::generateChunked(const ParsedWebSource&
                     firstProp = false;
                 }
             } else if (type == "TextBlock") {
-                // Default black/white? UE default is white. Let's explicit white.
-                props << indent(3) << "\"ColorAndOpacity\": {\"R\": 1, \"G\": 1, \"B\": 1, \"A\": 1}";
+                // Check if this is inside a link (TransparentButton) or is link text - use blue color
+                if (isInsideLink || lowerTag == "a") {
+                    // Link blue color #3B82F6 = RGB(59, 130, 246)
+                    props << indent(3) << "\"ColorAndOpacity\": {\"R\": 0.231, \"G\": 0.51, \"B\": 0.965, \"A\": 1}";
+                } else {
+                    // Default to black text to match original HTML (white backgrounds)
+                    props << indent(3) << "\"ColorAndOpacity\": {\"R\": 0, \"G\": 0, \"B\": 0, \"A\": 1}";
+                }
                 firstProp = false;
             }
             
@@ -558,6 +677,10 @@ JSONGenerator::ChunkedSpec JSONGenerator::generateChunked(const ParsedWebSource&
             }
 
             if (isListRoot) listCounters.pop_back();
+            
+            // Restore button/link state when exiting
+            isInsideButton = wasInsideButton;
+            isInsideLink = wasInsideLink;
         }
 
     } builder{ctx};

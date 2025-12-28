@@ -437,6 +437,24 @@ public:
                 slot.paddingBottom += mBottom; slot.paddingLeft += mLeft;
             }
         }
+        
+        // Handle individual margin properties (reuse 'unit' variable from above)
+        if (styles.count("margin-top")) {
+            float val; parseSize(styles.at("margin-top"), val, unit);
+            slot.paddingTop += val;
+        }
+        if (styles.count("margin-right")) {
+            float val; parseSize(styles.at("margin-right"), val, unit);
+            slot.paddingRight += val;
+        }
+        if (styles.count("margin-bottom")) {
+            float val; parseSize(styles.at("margin-bottom"), val, unit);
+            slot.paddingBottom += val;
+        }
+        if (styles.count("margin-left")) {
+            float val; parseSize(styles.at("margin-left"), val, unit);
+            slot.paddingLeft += val;
+        }
         return slot;
     }
 

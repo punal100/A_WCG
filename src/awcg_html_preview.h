@@ -29,15 +29,16 @@ public:
 
 private:
     static std::string generateHead(const std::string& className);
-    static std::string generateBody(const DOMNode& rootNode, std::vector<Diagnostic>& outDiagnostics);
+    static std::string generateBody(const DOMNode& rootNode, bool isInsideLink, std::vector<Diagnostic>& outDiagnostics);
     static std::string generateScripts(const DOMNode& rootNode);
     static std::string generateNodeRecursive(const DOMNode& node, 
                                            int indentLevel, 
                                            SlotConfig::SlotType parentType,
+                                           bool isInsideLink,
                                            std::vector<Diagnostic>& outDiagnostics);
     
     // CSS Helpers
-    static std::string generateElementStyle(const DOMNode& node, SlotConfig::SlotType parentType);
+    static std::string generateElementStyle(const DOMNode& node, SlotConfig::SlotType parentType, bool isInsideLink);
     static std::string colorToCss(const Color& color);
 };
 

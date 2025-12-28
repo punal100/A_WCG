@@ -73,12 +73,13 @@ static std::string collectAllText(const DOMNode& node) {
 std::string HtmlPreviewGenerator::generate(const ParsedWebSource& source,
                                           const std::string& className,
                                           std::vector<Diagnostic>& outDiagnostics) {
+    bool isInsideLink = false;
     std::ostringstream html;
     
     html << "<!DOCTYPE html>\n";
     html << "<html>\n";
     html << generateHead(className);
-    html << generateBody(source.rootNode, outDiagnostics);
+    html << generateBody(source.rootNode, isInsideLink, outDiagnostics);
     html << "</html>";
     
     return html.str();
@@ -89,18 +90,19 @@ std::string HtmlPreviewGenerator::generateHead(const std::string& className) {
     head << "<head>\n";
     head << indent(1) << "<title>A_WCG Preview: " << escapeHtml(className) << "</title>\n";
     head << indent(1) << "<style>\n";
-    head << indent(2) << "body { margin: 0; padding: 0; background-color: #1a1a1a; color: white; font-family: serif; font-size: 16px; }\n";
-    head << indent(2) << "#preview-root { width: 100vw; min-height: 100vh; position: relative; overflow: auto; background-color: #1a1a1a; color: white; padding: 8px; box-sizing: border-box; }\n";
+    // Match Original HTML: white background, black text (change to #1a1a1a & white for debug)
+    head << indent(2) << "body { margin: 0; padding: 0; background-color: #ffffff; color: black; font-family: serif; font-size: 16px; }\n";
+    head << indent(2) << "#preview-root { width: 100vw; min-height: 100vh; position: relative; overflow: auto; background-color: #ffffff; color: black; padding: 8px; box-sizing: border-box; }\n";
     head << indent(2) << ".debug-overlay { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.8); color: lime; padding: 10px; font-family: monospace; z-index: 9999; pointer-events: none; font-size: 12px; }\n";
     
     // Default widget mapping styles
     head << indent(2) << "/* Widget Mappings */\n";
-    head << indent(2) << ".ue-widget { color: white; }\n";
+    head << indent(2) << ".ue-widget { color: black; }\n";
     head << indent(2) << ".ue-canvas { position: absolute; top:0; left:0; right:0; bottom:0; overflow: hidden; }\n";
     head << indent(2) << ".ue-vbox { display: block; }\n";
     head << indent(2) << ".ue-hbox { display: flex; flex-direction: row; flex-wrap: wrap; }\n";
     head << indent(2) << ".ue-text { display: block; }\n";
-    head << indent(2) << ".ue-image { display: inline-block; width: 100px; height: 100px; border: 1px dashed #555; background: #333; }\n";
+    head << indent(2) << ".ue-image { display: inline-block; width: 100px; height: 100px; border: 1px dashed #555; background: #eee; }\n";
     head << indent(2) << ".ue-button { display: inline; text-decoration: underline; cursor: pointer; }\n";
     head << indent(2) << ".ue-scrollbox { overflow: auto; }\n";
     
@@ -129,7 +131,7 @@ std::string HtmlPreviewGenerator::generateHead(const std::string& className) {
     return head.str();
 }
 
-std::string HtmlPreviewGenerator::generateBody(const DOMNode& rootNode, std::vector<Diagnostic>& outDiagnostics) {
+std::string HtmlPreviewGenerator::generateBody(const DOMNode& rootNode, bool isInsideLink, std::vector<Diagnostic>& outDiagnostics) {
     std::ostringstream body;
     body << "<body>\n";
     body << indent(1) << "<div class=\"debug-overlay\">A_WCG PREVIEW MODE</div>\n";
@@ -141,7 +143,7 @@ std::string HtmlPreviewGenerator::generateBody(const DOMNode& rootNode, std::vec
     
     for (const auto& child : rootNode.children) {
         if (!child.isTextNode()) {
-            body << generateNodeRecursive(child, 2, SlotConfig::SlotType::Canvas, outDiagnostics);
+            body << generateNodeRecursive(child, 2, SlotConfig::SlotType::Canvas, isInsideLink, outDiagnostics);
         }
     }
     
@@ -170,6 +172,7 @@ std::string HtmlPreviewGenerator::generateScripts(const DOMNode& rootNode) {
 std::string HtmlPreviewGenerator::generateNodeRecursive(const DOMNode& node, 
                                                       int indentLevel, 
                                                       SlotConfig::SlotType parentType,
+                                                      bool isInsideLink,
                                                       std::vector<Diagnostic>& outDiagnostics) {
     std::ostringstream html;
     
@@ -179,7 +182,7 @@ std::string HtmlPreviewGenerator::generateNodeRecursive(const DOMNode& node,
     SlotConfig::SlotType myContainerType = StyleMapper::determineContainerType(node.computedStyles);
     
     // 2. Generate CSS for this node based on UMG layout rules
-    std::string css = generateElementStyle(node, parentType);
+    std::string css = generateElementStyle(node, parentType, isInsideLink);
     
     // 3. Map to HTML tag and classes - use native HTML tags when possible for better structure
     std::string tag = "div";
@@ -223,9 +226,10 @@ std::string HtmlPreviewGenerator::generateNodeRecursive(const DOMNode& node,
         classes += " ue-text"; 
     }
     else if (widgetType == "Image") { tag = "img"; classes += " ue-image"; }
-    else if (widgetType == "Button") { 
+    else if (widgetType == "Button" || widgetType == "TransparentButton") { 
         tag = "a"; 
         classes += " ue-button"; 
+        isInsideLink = true; // Track link state for children
     }
     else if (widgetType == "ScrollBox") { classes += " ue-scrollbox"; }
     
@@ -245,6 +249,9 @@ std::string HtmlPreviewGenerator::generateNodeRecursive(const DOMNode& node,
         html << "href=\"" << escapeHtml(node.attributes.at("href")) << "\" ";
     }
     html << "title=\"" << widgetName << " (" << widgetType << ")\">";
+    
+    // Update link state if this is an anchor tag
+    if (tag == "a") isInsideLink = true;
     // No newline after opening tag for inline elements
     if (tag != "span" && tag != "a" && tag != "li") html << "\n";
     
@@ -286,7 +293,7 @@ std::string HtmlPreviewGenerator::generateNodeRecursive(const DOMNode& node,
             }
             
             if (validChild) {
-                html << generateNodeRecursive(child, indentLevel + 1, myContainerType, outDiagnostics);
+                html << generateNodeRecursive(child, indentLevel + 1, myContainerType, isInsideLink, outDiagnostics);
             }
         }
     }
@@ -305,7 +312,7 @@ std::string HtmlPreviewGenerator::colorToCss(const Color& color) {
     return css.str();
 }
 
-std::string HtmlPreviewGenerator::generateElementStyle(const DOMNode& node, SlotConfig::SlotType parentType) {
+std::string HtmlPreviewGenerator::generateElementStyle(const DOMNode& node, SlotConfig::SlotType parentType, bool isInsideLink) {
     std::ostringstream css;
     
     // --- Layout (Slot) Mappings ---
@@ -384,6 +391,24 @@ std::string HtmlPreviewGenerator::generateElementStyle(const DOMNode& node, Slot
              }
          }
          
+         
+         // Apply Browser Default Margins for specific tags if no margin is set
+         std::string lowerTag = node.tagName;
+         std::transform(lowerTag.begin(), lowerTag.end(), lowerTag.begin(), ::tolower);
+         
+         if (node.computedStyles.find("margin") == node.computedStyles.end() && 
+             node.computedStyles.find("margin-top") == node.computedStyles.end()) {
+             
+             if (lowerTag == "p") css << "margin-top: 1em; margin-bottom: 1em; ";
+             else if (lowerTag == "h1") css << "margin-top: 0.67em; margin-bottom: 0.67em; ";
+             else if (lowerTag == "h2") css << "margin-top: 0.83em; margin-bottom: 0.83em; ";
+             else if (lowerTag == "h3") css << "margin-top: 1em; margin-bottom: 1em; ";
+             else if (lowerTag == "h4") css << "margin-top: 1.33em; margin-bottom: 1.33em; ";
+             else if (lowerTag == "h5") css << "margin-top: 1.67em; margin-bottom: 1.67em; ";
+             else if (lowerTag == "h6") css << "margin-top: 2.33em; margin-bottom: 2.33em; ";
+             else if (lowerTag == "ul" || lowerTag == "ol") css << "margin-top: 1em; margin-bottom: 1em; ";
+         }
+
          if (slot.sizeRule == "Fill") {
              css << "flex-grow: " << slot.fillWeight << "; ";
          } else {
@@ -411,6 +436,9 @@ std::string HtmlPreviewGenerator::generateElementStyle(const DOMNode& node, Slot
         if (StyleMapper::parseColor(node.computedStyles.at("color"), c)) {
             css << "color: " << colorToCss(c) << "; ";
         }
+    } else if (isInsideLink) {
+        // Explicitly force blue color for text/elements inside links if no color is set
+        css << "color: #3b82f6 !important; text-decoration: underline; ";
     }
     
     // Font

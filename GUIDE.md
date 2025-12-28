@@ -1,7 +1,7 @@
 # A_WCG User Guide
 
-**Version:** 1.0  
-**Last Updated:** December 27, 2025
+**Version:** 1.3.2  
+**Last Updated:** December 28, 2025
 
 ---
 
@@ -298,7 +298,7 @@ The preview HTML now includes:
 - **Browser-default styling** for h1-h6, p, a elements (proper font sizes, margins, bold)
 - **Tag-tracking classes** (e.g., `tag-h1`, `tag-p`) for accurate element styling
 - **Recursive text extraction** for nested elements like `<h1><span>Title</span></h1>`
-- **Dark theme** (#1a1a1a background) for visibility on all content
+- **White background with black text** (matches original HTML by default)
 - **Image placeholders** (100x100 dashed boxes) for `<img>` elements
 
 ---
@@ -320,6 +320,99 @@ The preview HTML now includes:
 
 ---
 
+### 15. New Features (v1.2)
+
+#### Fixed: List Numbering
+- **Previous Issue:** Ordered lists (`<ol>`) displayed numbers as multiples of 2 (e.g., 2., 4., 6.) instead of sequential (1., 2., 3.).
+- **Fix:** Removed duplicate counter increment in list item processing logic.
+- **Result:** List markers now correctly display 1., 2., 3., 4., 5., etc.
+
+#### Enhanced: Default Margins for Block Elements
+- Block elements now receive browser-default margins automatically:
+  - `<p>`: 16px top/bottom margin
+  - `<h1>` to `<h6>`: Scaled top/bottom margins (21-25px)
+  - `<ul>`, `<ol>`: 16px top/bottom margin + 40px left padding
+  - `<li>`: 4px bottom margin for item separation
+- CSS `margin-top`, `margin-right`, `margin-bottom`, `margin-left` are now fully supported in addition to the `margin` shorthand.
+
+#### Improved: Slot Padding Generation
+- Slot padding now correctly incorporates both CSS `margin` and `padding` values.
+- This ensures proper spacing between widgets in the generated UE Widget Blueprint.
+
+---
+
+### 16. New Features (v1.3)
+
+#### Fixed: List Layout Direction
+- **Previous Issue:** List items (`<li>`) in ordered/unordered lists displayed horizontally (left-to-right) instead of vertically (top-to-bottom).
+- **Fix:** Explicitly set Box slot type for `<ol>` and `<ul>` containers to ensure proper vertical stacking.
+- **Result:** List items now stack vertically as expected.
+
+#### Changed: Default Text Color
+- **Previous:** TextBlock widgets defaulted to white text color (`R:1, G:1, B:1`).
+- **New:** TextBlock widgets default to black text color (`R:0, G:0, B:0`) to match web defaults.
+- **Reason:** Matches original HTML styling where text is typically black on white backgrounds.
+
+#### Changed: Preview HTML Theme
+- **Previous:** Preview HTML used dark theme (#1a1a1a background, white text).
+- **New:** Preview HTML uses white background with black text, matching original HTML pages.
+- **Note:** For debugging with dark backgrounds, manually change `#ffffff` to `#1a1a1a` in `awcg_html_preview.cpp`.
+
+---
+
+### 17. New Features (v1.3.1)
+
+#### Fixed: Button Text Color (Blue Links)
+- **Issue:** Text inside `<a>` tags (TransparentButtons) had black color instead of link-blue.
+- **Fix:** Added `isInsideButton` state tracking to apply blue color (#3B82F6) to all TextBlocks inside buttons.
+- **Result:** Link text now correctly displays in blue like web links.
+
+#### Fixed: List Marker Color
+- **Issue:** Numbered/bullet markers had no explicit color, defaulting to white in some UE themes.
+- **Fix:** Added inline `ColorAndOpacity: {R:0, G:0, B:0, A:1}` to all marker TextBlocks.
+- **Result:** List markers are now always black for visibility.
+
+---
+
+### 18. New Features (v1.3.2)
+
+#### Enhanced: List Item Layout (Vertical Content Wrapper)
+- **Issue:** List items with multiple children (e.g., `<li><strong>Bold</strong> text and more</li>`) displayed inline instead of stacked.
+- **Fix:** LI children are now wrapped in a `VerticalBox` (`_Content` suffix) for proper vertical stacking.
+- **Result:** Multi-child list items now display correctly, with the marker to the left and content stacked vertically to the right.
+
+#### Improved: Marker Color via Design Section
+- **Previous:** Marker `ColorAndOpacity` was set inline in Hierarchy JSON.
+- **New:** Marker color is now defined in the Design section for consistency with MWCS conventions.
+- **Result:** Markers reliably render with black color.
+
+#### Refined: Link Text Color Logic
+- **Previous:** All text inside any Button (including non-link buttons) got blue color.
+- **New:** Separate `isInsideLink` flag tracks only `TransparentButton` (link elements). Regular `Button` elements do not get blue text.
+- **Result:** More accurate link styling.
+
+---
+
+### 19. New Features (v1.3.3)
+
+#### Fixed: Image Stretching
+- **Issue:** Images without explicit dimensions were stretching to fill the container width.
+- **Fix:** Images now default to `Size Rule: Auto` and `HAlign: Left` to preserve aspect ratio.
+- **Result:** Images display at their natural size or specified dimensions.
+
+#### Improved: Preview Accuracy
+- **Colors:** Link text now correctly displays in blue in the HTML preview.
+- **Spacing:** Added browser-default margins to `<h1>`-`<h6>`, `<p>`, and lists in the preview to better match the original.
+- **Result:** The generated preview is now a much closer visual match to the source HTML.
+
+#### Verified: AutoWrap Functionality
+- **Logic:** Confirmed that all content text blocks have `AutoWrapText: true` enabled by default.
+- **Note:** Ensure headlines are text-only or use inline elements (`<span>`, `<b>`) to be mapped as TextBlocks.
+
+---
+
 ## See Also
 
 - [README.md](./README.md) — Project overview and build instructions
+
+

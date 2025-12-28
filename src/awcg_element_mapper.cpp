@@ -93,6 +93,19 @@ std::string ElementMapper::mapElementToWidget(const DOMNode& node) {
     const auto& mapping = getElementMapping();
     auto it = mapping.find(tagName);
     if (it != mapping.end()) {
+        std::string widgetType = it->second;
+
+        // Special case: If mapped to TextBlock, but contains non-text/interactive children (like <a>),
+        // we must fallback to a container (VerticalBox) to allow children to exist as widgets.
+        if (widgetType == "TextBlock") {
+             for (const auto& child : node.children) {
+                 if (!isInlineTextElement(child)) {
+                     // Found a non-inline element (like <a>), so we can't be a simple TextBlock
+                     return "VerticalBox";
+                 }
+             }
+        }
+
         // Handle <li> with only text/inline content -> TextBlock
         if (tagName == "li") {
             bool hasElementChildren = false;

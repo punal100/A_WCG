@@ -19,8 +19,13 @@ It functions as the ingestion engine for **P_MWCS** (Modular Widget Creation Sys
 
 > **Important**: A_WCG is a **standalone executable** with no Unreal Engine dependencies. Widget Blueprint creation is exclusively owned by P_MWCS.
 > 
-> **Current Status (v1.0):**
+> **Current Status (v1.3.3):**
 > - ✅ **HTML Structure**: Fully supported (structure & content)
+> - ✅ **List Layout**: Ordered/unordered lists display vertically with content wrappers
+> - ✅ **Text Rendering**: Black text by default, blue for links (improved preview parity)
+> - ✅ **Auto-Wrap**: Enabled for all content text blocks
+> - ✅ **Images**: Auto-sized to prevent stretching
+> - ✅ **List Markers**: Numbered/bullet markers visible via Design section
 > - ⚠️ **CSS Support**: Partial/Experimental (colors, fonts, basic layout)
 > - ❌ **JavaScript**: **Not Supported** (Strictly ignored)
 > 
