@@ -19,7 +19,7 @@ A_WCG is a **standalone C++ CLI tool** that converts HTML/CSS to P_MWCS-compatib
 
 ```powershell
 cd A_WCG
-.\Scripts\Build.ps1 -Configuration Release
+.\DevTools\scripts\Build.ps1 -Configuration Release
 ```
 
 Output: `out\build\x64-release\bin\Release\awcg.exe`
@@ -30,23 +30,23 @@ Output: `out\build\x64-release\bin\Release\awcg.exe`
 
 | Script | Purpose |
 |--------|---------|
-| `Scripts\Build.ps1` | CMake + MSVC build |
-| `Scripts\Fetch.ps1` | Download website assets |
-| `Scripts\Convert.ps1` | Run conversions |
-| `Scripts\Clean.ps1` | Remove artifacts |
+| `DevTools\scripts\Build.ps1` | CMake + MSVC build |
+| `DevTools\scripts\Fetch.ps1` | Download website assets |
+| `DevTools\scripts\Convert.ps1` | Run conversions |
+| `DevTools\scripts\Clean.ps1` | Remove artifacts |
 
 ```powershell
 # Build
-.\Scripts\Build.ps1 -Configuration Release
+.\DevTools\scripts\Build.ps1 -Configuration Release
 
 # Fetch website
-.\Scripts\Fetch.ps1 -Url "https://example.com" -IncludeImages
+.\DevTools\scripts\Fetch.ps1 -Url "https://example.com" -IncludeImages
 
 # Convert
-.\Scripts\Convert.ps1 -Source .\fetched\example_com.html -ClassName MainMenu
+.\DevTools\scripts\Convert.ps1 -Source .\fetched\example_com.html -ClassName MainMenu
 
 # Clean
-.\Scripts\Clean.ps1 -All
+.\DevTools\scripts\Clean.ps1 -All
 ```
 
 ---

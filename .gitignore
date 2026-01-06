@@ -49,3 +49,5 @@ enc_temp_folder/
 
 # Generated output (optional - uncomment to ignore)
 /generated/
+/Artifacts/*
+/DevTools/output

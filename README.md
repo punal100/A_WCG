@@ -45,7 +45,7 @@ It functions as the ingestion engine for **P_MWCS** (Modular Widget Creation Sys
 
 ```powershell
 cd A_WCG
-.\Scripts\Build.ps1 -Configuration Release
+.\DevTools\scripts\Build.ps1 -Configuration Release
 ```
 
 Output: `out\build\x64-release\bin\Release\awcg.exe`
@@ -56,27 +56,27 @@ Output: `out\build\x64-release\bin\Release\awcg.exe`
 
 | Script | Purpose |
 |--------|---------|
-| `Scripts\Build.ps1` | Build with MSVC (Debug/Release) |
-| `Scripts\Fetch.ps1` | Download HTML/CSS/JS from a URL |
-| `Scripts\RunPreview.ps1` | Build & Generate Preview (AV-Safe) |
-| `Scripts\Convert.ps1` | Run HTML→Widget conversion |
-| `Scripts\Clean.ps1` | Remove build artifacts |
+| `DevTools\scripts\Build.ps1` | Build with MSVC (Debug/Release) |
+| `DevTools\scripts\Fetch.ps1` | Download HTML/CSS/JS from a URL |
+| `DevTools\scripts\RunPreview.ps1` | Build & Generate Preview (AV-Safe) |
+| `DevTools\scripts\Convert.ps1` | Run HTML→Widget conversion |
+| `DevTools\scripts\Clean.ps1` | Remove build artifacts |
 
 ```powershell
 # Build
-.\Scripts\Build.ps1 -Configuration Release
+.\DevTools\scripts\Build.ps1 -Configuration Release
 
 # Fetch website assets (Download only)
-.\Scripts\Fetch.ps1 -Url "https://example.com" -Output .\fetched
+.\DevTools\scripts\Fetch.ps1 -Url "https://example.com" -Output .\fetched
 
 # Generate & Preview (No network access - AV Safe)
-.\Scripts\RunPreview.ps1 -Name example_com
+.\DevTools\scripts\RunPreview.ps1 -Name example_com
 
 # Convert HTML to widget spec
-.\Scripts\Convert.ps1 -Source .\fetched\example_com.html -ClassName MainMenu
+.\DevTools\scripts\Convert.ps1 -Source .\fetched\example_com.html -ClassName MainMenu
 
 # Clean build artifacts
-.\Scripts\Clean.ps1
+.\DevTools\scripts\Clean.ps1
 ```
 
 ---
@@ -216,12 +216,15 @@ A_WCG/
 │   ├── awcg_json_generator.h/cpp  # P_MWCS JSON generation
 │   ├── awcg_cpp_generator.h/cpp   # C++ header/source generation
 │   └── awcg_html_preview.h/cpp    # Preview HTML generation
-├── Scripts/
-│   ├── Build.ps1         # Build script
-│   ├── Fetch.ps1         # Website fetcher
-│   ├── Convert.ps1       # Conversion script
-│   ├── RunPreview.ps1    # AV-safe preview
-│   └── Clean.ps1         # Cleanup script
+├── DevTools/
+│   ├── ci/               # CI configuration
+│   ├── output/           # Build/test output
+│   └── scripts/
+│       ├── Build.ps1     # Build script
+│       ├── Fetch.ps1     # Website fetcher
+│       ├── Convert.ps1   # Conversion script
+│       ├── RunPreview.ps1 # AV-safe preview
+│       └── Clean.ps1     # Cleanup script
 ├── README.md
 ├── GUIDE.md
 └── PLAN.md
